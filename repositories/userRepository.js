@@ -1,34 +1,42 @@
-const { db } = require("../config/db"); // Import our smart wrapper
+const { db } = require("../config/db");
 const User = require("../models/user");
 
 class UserRepository {
+  // Helper to map DB Lowercase -> App CamelCase
+  // We don't need to check "||" anymore because the DB is consistent!
+  _mapToModel(row) {
+    if (!row) return null;
+    return new User({
+      id: row.id,
+      email: row.email,
+      fullName: row.fullname,       // DB gives 'fullname', we map to 'fullName'
+      passwordHash: row.passwordhash, // DB gives 'passwordhash', we map to 'passwordHash'
+      createdAt: row.createdat
+    });
+  }
+
   async findByEmail(email) {
-    // We use "?" syntax. db.js converts it to "$1" if we are on Postgres.
-    const result = await db.query('SELECT * FROM Users WHERE email = ?',[email]);
-    return result.rows[0] ? new User(result.rows[0]) : null;
+    const result = await db.query('SELECT * FROM Users WHERE email = ?', [email]);
+    return this._mapToModel(result.rows[0]);
   }
 
   async findById(id) {
     const result = await db.query('SELECT * FROM Users WHERE id = ?', [id]);
-    return result.rows[0] ? new User(result.rows[0]) : null;
+    return this._mapToModel(result.rows[0]);
   }
 
   async create({ email, fullName, passwordHash }) {
     const createdAt = new Date().toISOString();
 
-    // 1. Insert the user
+    // --- CHANGE: Insert into lowercase column names ---
     const result = await db.query(
-      `INSERT INTO Users (email, fullName, passwordHash, createdAt) VALUES (?, ?, ?, ?)`,
+      `INSERT INTO Users (email, fullname, passwordhash, createdat) VALUES (?, ?, ?, ?)`,
       [email, fullName, passwordHash, createdAt]
     );
 
-    // 2. Fetch the newly created user
-    // (This works for both DBs: SQLite uses lastID, Postgres we just query by email to be safe and simple)
     if (result.lastID) {
-      // SQLite: We have the ID
       return this.findById(result.lastID);
     } else {
-      // Postgres: Query by the unique email to get the full object including ID
       return this.findByEmail(email);
     }
   }
