@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 700px;
+            margin: 40px auto;
+        }
+
+        .error {
+            color: darkred;
+        }
+
+        input {
+            display: block;
+            margin: 8px 0;
+            padding: 8px;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px 14px;
+            cursor: pointer;
+        }
+
+        .box {
+            border: 1px solid #ddd;
+            padding: 16px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <h2>Login</h2>
+
+        <% if (error) { %>
+            <p class="error">
+                <%= error %>
+            </p>
+            <% } %>
+
+                <form method="POST" action="/login">
+                    <input name="email" placeholder="Email" type="email" required />
+                    <input name="password" placeholder="Password" type="password" required />
+                    <button type="submit">Login</button>
+                </form>
+
+                <p>No account? <a href="/register">Register</a></p>
+    </div>
+</body>
+
+</html>
